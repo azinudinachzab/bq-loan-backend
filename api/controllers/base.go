@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,9 +10,8 @@ import (
 	"github.com/jinzhu/gorm"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"    //mysql database driver
-	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
-	_ "github.com/jinzhu/gorm/dialects/sqlite"   // sqlite database driver
-	"github.com/victorsteven/fullstack/api/models"
+	//_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
+	//_ "github.com/jinzhu/gorm/dialects/sqlite"   // sqlite database driver
 )
 
 type Server struct {
@@ -19,50 +19,31 @@ type Server struct {
 	Router *mux.Router
 }
 
-func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) {
+type DBConnection struct {
+	Driver, User, Password, Port, Host, Name string
+}
 
-	var err error
+func (server *Server) Initialize(d DBConnection) error {
 
-	if Dbdriver == "mysql" {
-		DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
-		server.DB, err = gorm.Open(Dbdriver, DBURL)
-		if err != nil {
-			fmt.Printf("Cannot connect to %s database", Dbdriver)
-			log.Fatal("This is the error:", err)
-		} else {
-			fmt.Printf("We are connected to the %s database", Dbdriver)
-		}
-	}
-	if Dbdriver == "postgres" {
-		DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
-		server.DB, err = gorm.Open(Dbdriver, DBURL)
-		if err != nil {
-			fmt.Printf("Cannot connect to %s database", Dbdriver)
-			log.Fatal("This is the error:", err)
-		} else {
-			fmt.Printf("We are connected to the %s database", Dbdriver)
-		}
-	}
-	if Dbdriver == "sqlite3" {
-		//DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
-		server.DB, err = gorm.Open(Dbdriver, DbName)
-		if err != nil {
-			fmt.Printf("Cannot connect to %s database\n", Dbdriver)
-			log.Fatal("This is the error:", err)
-		} else {
-			fmt.Printf("We are connected to the %s database\n", Dbdriver)
-		}
-		server.DB.Exec("PRAGMA foreign_keys = ON")
+	if d.Driver != "mysql" {
+		return errors.New("DB Dialect is not recognized")
 	}
 
-	server.DB.Debug().AutoMigrate(&models.User{}, &models.Post{}) //database migration
+	DbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+		d.User, d.Password, d.Host, d.Port, d.Name)
+	gDB, err := gorm.Open(d.Driver, DbURL)
+	if err != nil {
+		return err
+	}
 
+	server.DB = gDB
+	//server.DB.Debug().AutoMigrate(&models.User{}, &models.Post{}) //database migration
 	server.Router = mux.NewRouter()
-
 	server.initializeRoutes()
+	return nil
 }
 
 func (server *Server) Run(addr string) {
-	fmt.Println("Listening to port 8080")
+	log.Printf("Listening to port %s", addr)
 	log.Fatal(http.ListenAndServe(addr, server.Router))
 }

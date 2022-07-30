@@ -3,6 +3,7 @@ package responses
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -12,6 +13,7 @@ func JSON(w http.ResponseWriter, statusCode int, data interface{}) {
 	if err != nil {
 		fmt.Fprintf(w, "%s", err.Error())
 	}
+	responseLogger(data)
 }
 
 func ERROR(w http.ResponseWriter, statusCode int, err error) {
@@ -24,4 +26,8 @@ func ERROR(w http.ResponseWriter, statusCode int, err error) {
 		return
 	}
 	JSON(w, http.StatusBadRequest, nil)
+}
+
+func responseLogger(d interface{}) {
+	log.Printf(`response: %+v`, d)
 }

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"github.com/victorsteven/fullstack/api"
+	"github.com/azinudinachzab/bq-loan-backend/api"
 )
 
 func main() {
-
 	api.Run()
-
 }
