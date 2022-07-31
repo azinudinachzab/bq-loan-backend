@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-
 	"github.com/azinudinachzab/bq-loan-backend/api/auth"
 	"github.com/azinudinachzab/bq-loan-backend/api/models"
 	"github.com/azinudinachzab/bq-loan-backend/api/responses"
 	"github.com/azinudinachzab/bq-loan-backend/api/utils/formaterror"
 	"github.com/gorilla/mux"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 )
 
 func (server *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +68,7 @@ func (server *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	userGotten, err := user.FindUserByID(server.DB, uint32(uid))
 	if err != nil {
-		responses.ERROR(w, http.StatusBadRequest, err)
+		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
 	}
 	responses.JSON(w, http.StatusOK, userGotten)
@@ -145,4 +144,43 @@ func (server *Server) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Entity", fmt.Sprintf("%d", uid))
 	responses.JSON(w, http.StatusNoContent, "")
+}
+
+func (server *Server) ToggleUserIsActive(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	uid, err := strconv.ParseUint(vars["id"], 10, 32)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+
+	user := models.User{}
+	userGotten, err := user.FindUserByID(server.DB, uint32(uid))
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if userGotten.Role != 4 {
+		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
+		return
+	}
+
+	mapToggle := map[int]int {
+		0: 1,
+		1: 0,
+	}
+	toggleIsActive, ok := mapToggle[userGotten.IsActive]
+	if !ok {
+		responses.ERROR(w, http.StatusInternalServerError, errors.New("active status not recognized"))
+		return
+	}
+
+	if err := userGotten.UpdateIsActive(server.DB, uint32(uid), toggleIsActive); err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userGotten.IsActive = toggleIsActive
+	responses.JSON(w, http.StatusOK, userGotten)
 }
