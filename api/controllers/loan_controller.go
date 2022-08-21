@@ -248,3 +248,121 @@ func (server *Server) DeleteLoanGeneral(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Entity", fmt.Sprintf("%d", pid))
 	responses.JSON(w, http.StatusNoContent, "")
 }
+
+// ============================= LOAN DETAIL =======================================
+
+func (server *Server) CreateLoanDetail(w http.ResponseWriter, r *http.Request) {
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+	loanDetail := models.LoanDetail{}
+	err = json.Unmarshal(body, &loanDetail)
+	if err != nil {
+		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+	loanDetail.Prepare()
+	//err = post.Validate()
+	//if err != nil {
+	//	responses.ERROR(w, http.StatusUnprocessableEntity, err)
+	//	return
+	//}
+	typeCreated, err := loanDetail.SaveLoanDetail(server.DB)
+	if err != nil {
+		formattedError := formaterror.FormatError(err.Error())
+		responses.ERROR(w, http.StatusInternalServerError, formattedError)
+		return
+	}
+	w.Header().Set("Location", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, typeCreated.ID))
+	responses.JSON(w, http.StatusCreated, typeCreated)
+}
+
+func (server *Server) GetLoanDetails(w http.ResponseWriter, r *http.Request) {
+	loanDetail := models.LoanDetail{}
+	loanDetails, err := loanDetail.FindAllLoanDetails(server.DB)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+	responses.JSON(w, http.StatusOK, loanDetails)
+}
+
+func (server *Server) GetLoanDetail(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+	loanDetail := models.LoanDetail{}
+	loanDetailData, err := loanDetail.FindLoanDetailByID(server.DB, uint32(pid))
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+	responses.JSON(w, http.StatusOK, loanDetailData)
+}
+
+func (server *Server) UpdateLoanDetail(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	// Start processing the request data
+	loanDetail := models.LoanDetail{}
+	err = json.Unmarshal(body, &loanDetail)
+	if err != nil {
+		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	loanDetail.Prepare()
+	//err = postUpdate.Validate()
+	//if err != nil {
+	//	responses.ERROR(w, http.StatusUnprocessableEntity, err)
+	//	return
+	//}
+	postUpdated, err := loanDetail.UpdateALoanDetail(server.DB, uint32(pid))
+
+	if err != nil {
+		formattedError := formaterror.FormatError(err.Error())
+		responses.ERROR(w, http.StatusInternalServerError, formattedError)
+		return
+	}
+	responses.JSON(w, http.StatusOK, postUpdated)
+}
+
+func (server *Server) DeleteLoanDetail(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	// Is a valid post id given to us?
+	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// Check if the post exist
+	loanDetail := models.LoanDetail{}
+	if err := loanDetail.DeleteALoanDetail(server.DB, uint32(pid)); err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+	w.Header().Set("Entity", fmt.Sprintf("%d", pid))
+	responses.JSON(w, http.StatusNoContent, "")
+}

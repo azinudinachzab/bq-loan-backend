@@ -1,8 +1,12 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"html"
+	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -17,10 +21,25 @@ type LoanGeneral struct {
 	Amount    float64    `gorm:"type:decimal;not null" json:"amount"`
 	Datetime  time.Time  `gorm:"type:timestamp;not null" json:"datetime"`
 	Tenor     int        `gorm:"type:int;not null" json:"tenor"`
+	Status    int        `gorm:"type:int;not null" json:"status"`
 	LoanTypeID uint32    `gorm:"type:int;not null" json:"loan_type_id"`
 	LoanTypes LoanType   `json:"loan_type"`
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+}
+
+type LoanGeneralRaw struct {
+	LoanTypeName string
+	UserName  string
+	ID        uint32
+	UserID    uint32
+	Title     string
+	Amount    float64
+	Datetime  time.Time
+	Tenor     int
+	Status    int
+	LoanTypeID uint32
+	CreatedAt time.Time
 }
 
 func (lg *LoanGeneral) Prepare() {
@@ -62,13 +81,61 @@ func (lg *LoanGeneral) SaveLoanGeneral(db *gorm.DB) (*LoanGeneral, error) {
 	return lg, nil
 }
 
-func (lg *LoanGeneral) FindAllLoanGenerals(db *gorm.DB) (*[]LoanGeneral, error) {
-	var err error
-	lGeneral := make([]LoanGeneral,0)
-	err = db.Debug().Model(&LoanGeneral{}).Limit(paginationLimit).Find(&lGeneral).Error
+func (lg *LoanGeneral) FindAllLoanGenerals(db *gorm.DB) (*[]LoanGeneralRaw, error) {
+	DbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+		os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
+	rdb, err := sql.Open("mysql", DbURL)
 	if err != nil {
-		return &[]LoanGeneral{}, err
+		log.Printf("error while opening mysql DB: %v", err)
+		return nil, err
 	}
+
+	rows, err := rdb.Query(`SELECT lt.name, u.name, lg.id, lg.user_id, lg.title, lg.amount, lg.datetime, lg.tenor, lg.status, 
+	lg.loan_type_id, lg.created_at FROM loan_generals lg 
+	LEFT JOIN loan_types lt ON lt.id = lg.loan_type_id LEFT JOIN users u ON u.id = lg.user_id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	lGeneral := make([]LoanGeneralRaw, 0)
+
+	for rows.Next() {
+		var (
+			typeName sql.NullString
+			userName sql.NullString
+			id uint32
+			userID uint32
+			title string
+			amount float64
+			datetime time.Time
+			tenor int
+			status int
+			loanTypeID uint32
+			createdAt time.Time
+		)
+
+		if err := rows.Scan(&typeName, &userName, &id, &userID, &title, &amount, &datetime, &tenor, &status, &loanTypeID, &createdAt); err != nil {
+			return nil, err
+		}
+
+		lgd := LoanGeneralRaw{
+			LoanTypeName: typeName.String,
+			UserName:     userName.String,
+			ID:           id,
+			UserID:       userID,
+			Title:        title,
+			Amount:       amount,
+			Datetime:     datetime,
+			Tenor:        tenor,
+			Status:       status,
+			LoanTypeID:   loanTypeID,
+			CreatedAt:    createdAt,
+		}
+		lGeneral = append(lGeneral, lgd)
+
+	}
+
 	return &lGeneral, nil
 }
 
