@@ -5,4 +5,5 @@ const (
 	HTTPMethodPost = "POST"
 	HTTPMethodPut = "PUT"
 	HTTPMethodDelete = "DELETE"
+	HTTPMethodOptions = "OPTIONS"
 )

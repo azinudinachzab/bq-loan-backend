@@ -31,7 +31,7 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	token, err := server.SignIn(user.Email, user.Password)
+	usr, token, err := server.SignIn(user.Email, user.Password)
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
 		responses.ERROR(w, http.StatusUnprocessableEntity, formattedError)
@@ -39,10 +39,12 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	responses.JSON(w, http.StatusOK, struct {
 		Token string `json:"token"`
-	}{Token: token})
+		UserID uint32 `json:"user_id"`
+		Role   int    `json:"role"`
+	}{Token: token, UserID: usr.ID, Role: usr.Role})
 }
 
-func (server *Server) SignIn(email, password string) (string, error) {
+func (server *Server) SignIn(email, password string) (models.User, string, error) {
 
 	var err error
 
@@ -50,11 +52,12 @@ func (server *Server) SignIn(email, password string) (string, error) {
 
 	err = server.DB.Debug().Model(models.User{}).Where("email = ?", email).Take(&user).Error
 	if err != nil {
-		return "", err
+		return models.User{}, "", err
 	}
 	err = models.VerifyPassword(user.Password, password)
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return "", err
+		return models.User{}, "", err
 	}
-	return auth.CreateToken(user.ID)
+	tkn, err := auth.CreateToken(user.ID)
+	return user, tkn, err
 }
