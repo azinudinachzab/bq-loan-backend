@@ -38,10 +38,9 @@ func (server *Server) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.JSON(w, http.StatusOK, struct {
-		Token string `json:"token"`
-		UserID uint32 `json:"user_id"`
-		Role   int    `json:"role"`
-	}{Token: token, UserID: usr.ID, Role: usr.Role})
+		Token string      `json:"token"`
+		Usr   models.User `json:"user"`
+	}{Token: token, Usr: usr})
 }
 
 func (server *Server) SignIn(email, password string) (models.User, string, error) {
