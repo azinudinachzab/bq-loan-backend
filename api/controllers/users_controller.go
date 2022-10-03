@@ -154,11 +154,6 @@ func (server *Server) ToggleUserIsActive(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if userGotten.Role != 4 {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
-		return
-	}
-
 	mapToggle := map[int]int {
 		0: 1,
 		1: 0,
