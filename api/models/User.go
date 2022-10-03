@@ -18,7 +18,7 @@ type User struct {
 	Email string `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:255;not null;" json:"password"`
 	Role      int `gorm:"type:int;not null;default:1" json:"role"`
-	IsActive  int `gorm:"type:int;not null;default:1" json:"is_active"`
+	IsActive  int `gorm:"type:int;not null;" json:"is_active"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
