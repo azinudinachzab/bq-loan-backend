@@ -35,8 +35,8 @@ func Run() {
 	// seed.Load(server.DB)
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = ":8080"
+		port = "8080"
 	}
 	log.Printf("Server started on port %s", port)
-	server.Run(port)
+	server.Run(":"+port)
 }
