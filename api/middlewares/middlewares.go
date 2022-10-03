@@ -31,6 +31,7 @@ func SetMiddlewareAuthentication(next http.HandlerFunc) http.HandlerFunc {
 		requestLogger(r)
 		err := auth.TokenValid(r)
 		if err != nil {
+			log.Println("Jwt parse error", err)
 			responses.ERROR(w, http.StatusUnauthorized, errors.New("unauthorized"))
 			return
 		}
