@@ -307,6 +307,23 @@ func (server *Server) GetLoanDetail(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, loanDetailData)
 }
 
+func (server *Server) GetLoanDetailByGeneralID(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+	loanDetail := models.LoanDetail{}
+	loanDetailData, err := loanDetail.FindLoanDetailByLoanGeneralID(server.DB, uint32(pid))
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+	responses.JSON(w, http.StatusOK, loanDetailData)
+}
+
 func (server *Server) UpdateLoanDetail(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
