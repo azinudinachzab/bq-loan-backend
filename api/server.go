@@ -10,9 +10,11 @@ import (
 
 func Run() {
 
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error getting env, %v", err)
-		return
+	if os.Getenv("ENV") == "DEV" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatalf("Error getting env, %v", err)
+			return
+		}
 	}
 
 	var server = controllers.Server{}
