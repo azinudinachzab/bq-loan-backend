@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/azinudinachzab/bq-loan-backend/api/models"
@@ -170,7 +171,8 @@ func (server *Server) GetLoanGenerals(w http.ResponseWriter, r *http.Request) {
 	lastTime := r.URL.Query().Get("timestamp")
 
 	if lastTime != "" {
-		tParse, err := time.Parse(time.RFC3339Nano, lastTime)
+		lastTime = strings.Replace(lastTime, " ", "+", 1)
+		tParse, err := time.Parse(time.RFC3339, lastTime)
 		if err != nil {
 			responses.ERROR(w, http.StatusInternalServerError, err)
 			return
