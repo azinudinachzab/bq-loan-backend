@@ -420,12 +420,6 @@ func (server *Server) AcceptLoanRequest(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = loanGeneral.UpdateStatus(server.DB, uint32(pid), 1)
-	if err != nil {
-		responses.ERROR(w, http.StatusInternalServerError, err)
-		return
-	}
-
 	tenor := loanGeneralData.Tenor
 	loanDetails := make([]models.LoanDetail, 0)
 	loanDetail := models.LoanDetail{}
@@ -452,6 +446,12 @@ func (server *Server) AcceptLoanRequest(w http.ResponseWriter, r *http.Request) 
 			responses.ERROR(w, http.StatusInternalServerError, formattedError)
 			return
 		}
+	}
+
+	err = loanGeneral.UpdateStatus(server.DB, uint32(pid), 1)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
 	}
 	responses.JSON(w, http.StatusNoContent, "")
 }
