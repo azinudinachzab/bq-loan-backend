@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/azinudinachzab/bq-loan-backend/api/models"
 	"github.com/azinudinachzab/bq-loan-backend/api/responses"
@@ -163,8 +164,19 @@ func (server *Server) CreateLoanGeneral(w http.ResponseWriter, r *http.Request) 
 }
 
 func (server *Server) GetLoanGenerals(w http.ResponseWriter, r *http.Request) {
+
+	creditor := "%" + r.URL.Query().Get("creditor") + "%"
+	loan := "%" + r.URL.Query().Get("loan") + "%"
+	lastTime := r.URL.Query().Get("timestamp")
+
+	tParse, err := time.Parse(time.RFC3339, lastTime)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	loanGeneral := models.LoanGeneral{}
-	loanGenerals, err := loanGeneral.FindAllLoanGenerals(server.DB)
+	loanGenerals, err := loanGeneral.FindAllLoanGeneralsPaginatedSearch(creditor, loan, tParse.Format(time.RFC3339))
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
@@ -381,5 +393,87 @@ func (server *Server) DeleteLoanDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Entity", fmt.Sprintf("%d", pid))
+	responses.JSON(w, http.StatusNoContent, "")
+}
+
+// Loan action
+func (server *Server) AcceptLoanRequest(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	// Is a valid post id given to us?
+	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+
+	loanGeneral := models.LoanGeneral{}
+	loanGeneralData, err := loanGeneral.FindLoanGeneralByID(server.DB, uint32(pid))
+	if err != nil {
+		responses.ERROR(w, http.StatusNotFound, err)
+		return
+	}
+
+	err = loanGeneral.UpdateStatus(server.DB, uint32(pid), 1)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	tenor := loanGeneralData.Tenor
+	loanDetails := make([]models.LoanDetail, 0)
+	loanDetail := models.LoanDetail{}
+	tmp := models.LoanDetail{
+		LoanGeneralID: loanGeneralData.ID,
+		Amount:        loanGeneralData.Amount / float64(tenor),
+		Status:        0,
+	}
+
+	now := time.Now()
+	for i:=0; i<tenor; i++{
+		tmp.Prepare()
+		date := time.Date(now.Year(), now.Month(), 25, now.Hour(), now.Minute(), now.Second(),
+			now.Nanosecond(), now.Location()).AddDate(0, i+1, 0)
+		tmp.Datetime = date
+
+		loanDetails = append(loanDetails, tmp)
+	}
+
+	if len(loanDetails) > 0 {
+		err = loanDetail.BulkSaveLoanDetail(server.DB, loanDetails)
+		if err != nil {
+			formattedError := formaterror.FormatError(err.Error())
+			responses.ERROR(w, http.StatusInternalServerError, formattedError)
+			return
+		}
+	}
+	responses.JSON(w, http.StatusNoContent, "")
+}
+
+func (server *Server) AcceptLoanPayment(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	// Is a valid post id given to us?
+	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+
+	loanDetail := models.LoanDetail{}
+	_, err = loanDetail.FindLoanDetailByID(server.DB, uint32(pid))
+	if err != nil {
+		responses.ERROR(w, http.StatusNotFound, err)
+		return
+	}
+
+	err = loanDetail.UpdateStatus(server.DB, uint32(pid), 1)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	responses.JSON(w, http.StatusNoContent, "")
 }

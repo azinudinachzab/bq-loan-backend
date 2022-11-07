@@ -108,3 +108,19 @@ func (ld *LoanDetail) DeleteALoanDetail(db *gorm.DB, lid uint32) error {
 	}
 	return nil
 }
+
+func (ld *LoanDetail) BulkSaveLoanDetail(db *gorm.DB, ald []LoanDetail) error {
+	err := db.Debug().Model(&LoanDetail{}).Create(&ald).Error
+	return err
+}
+
+func (ld *LoanDetail) UpdateStatus(db *gorm.DB, uid uint32, status int) error {
+	err := db.Debug().Model(&LoanDetail{}).Where("id = ?", uid).Take(&LoanDetail{}).UpdateColumns(
+		map[string]interface{}{
+			"status": status,
+			"updated_at": time.Now(),
+		},
+	).Error
+
+	return err
+}

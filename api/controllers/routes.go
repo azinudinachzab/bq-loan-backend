@@ -61,6 +61,12 @@ func (server *Server) initializeRoutes() {
 	server.Router.HandleFunc("/loan-detail", middlewares.SetMiddlewareJSON(server.GetUsers)).Methods(constant.HTTPMethodOptions)
 	server.Router.HandleFunc("/loan-detail/general/{id}", middlewares.SetMiddlewareJSON(server.GetLoanDetail)).Methods(constant.HTTPMethodOptions)
 	server.Router.HandleFunc("/loan-detail/{id}", middlewares.SetMiddlewareJSON(server.GetUser)).Methods(constant.HTTPMethodOptions)
+
+	// Loan action
+	server.Router.HandleFunc("/loan-general/accept/{id}", middlewares.SetMiddlewareJSON(server.AcceptLoanRequest)).Methods(constant.HTTPMethodGet)
+	server.Router.HandleFunc("/loan-general/accept/{id}", middlewares.SetMiddlewareJSON(server.AcceptLoanRequest)).Methods(constant.HTTPMethodOptions)
+	server.Router.HandleFunc("/loan-detail/accept/{id}", middlewares.SetMiddlewareJSON(server.AcceptLoanPayment)).Methods(constant.HTTPMethodGet)
+	server.Router.HandleFunc("/loan-detail/accept/{id}", middlewares.SetMiddlewareJSON(server.AcceptLoanPayment)).Methods(constant.HTTPMethodOptions)
 }
 
 func (server *Server) healthCheck(w http.ResponseWriter, _ *http.Request) {

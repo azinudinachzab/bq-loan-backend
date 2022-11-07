@@ -201,3 +201,74 @@ func (lg *LoanGeneral) DeleteALoanGeneral(db *gorm.DB, lid uint32) error {
 	}
 	return nil
 }
+
+func (lg *LoanGeneral) FindAllLoanGeneralsPaginatedSearch(creditor, loan, lastTime string) (*[]LoanGeneralRaw, error) {
+	DbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+		os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
+	rdb, err := sql.Open("mysql", DbURL)
+	if err != nil {
+		log.Printf("error while opening mysql DB: %v", err)
+		return nil, err
+	}
+
+	rows, err := rdb.Query(`SELECT lt.name, u.name, lg.id, lg.user_id, lg.title, lg.amount, lg.datetime, lg.tenor, lg.status, 
+	lg.loan_type_id, lg.created_at FROM loan_generals lg 
+	LEFT JOIN loan_types lt ON lt.id = lg.loan_type_id LEFT JOIN users u ON u.id = lg.user_id 
+	WHERE lg.title LIKE ? AND u.name LIKE ? AND lg.datetime > ?
+	ORDER BY lg.datetime DESC LIMIT 25;`, loan, creditor, lastTime)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	lGeneral := make([]LoanGeneralRaw, 0)
+
+	for rows.Next() {
+		var (
+			typeName sql.NullString
+			userName sql.NullString
+			id uint32
+			userID uint32
+			title string
+			amount float64
+			datetime time.Time
+			tenor int
+			status int
+			loanTypeID uint32
+			createdAt time.Time
+		)
+
+		if err := rows.Scan(&typeName, &userName, &id, &userID, &title, &amount, &datetime, &tenor, &status, &loanTypeID, &createdAt); err != nil {
+			return nil, err
+		}
+
+		lgd := LoanGeneralRaw{
+			LoanTypeName: typeName.String,
+			UserName:     userName.String,
+			ID:           id,
+			UserID:       userID,
+			Title:        title,
+			Amount:       amount,
+			Datetime:     datetime,
+			Tenor:        tenor,
+			Status:       status,
+			LoanTypeID:   loanTypeID,
+			CreatedAt:    createdAt,
+		}
+		lGeneral = append(lGeneral, lgd)
+
+	}
+
+	return &lGeneral, nil
+}
+
+func (lg *LoanGeneral) UpdateStatus(db *gorm.DB, uid uint32, status int) error {
+	err := db.Debug().Model(&LoanGeneral{}).Where("id = ?", uid).Take(&LoanGeneral{}).UpdateColumns(
+		map[string]interface{}{
+			"status": status,
+			"updated_at": time.Now(),
+		},
+	).Error
+
+	return err
+}
