@@ -54,12 +54,12 @@ func (server *Server) initializeRoutes() {
 	server.Router.HandleFunc("/loan-detail", middlewares.SetMiddlewareJSON(server.CreateLoanDetail)).Methods(constant.HTTPMethodPost)
 	server.Router.HandleFunc("/loan-detail", middlewares.SetMiddlewareJSON(server.GetLoanDetails)).Methods(constant.HTTPMethodGet)
 	server.Router.HandleFunc("/loan-detail/{id}", middlewares.SetMiddlewareJSON(server.GetLoanDetail)).Methods(constant.HTTPMethodGet)
-	server.Router.HandleFunc("/loan-detail/general/{id}", middlewares.SetMiddlewareJSON(server.GetLoanDetail)).Methods(constant.HTTPMethodGet)
+	server.Router.HandleFunc("/loan-detail/general/{id}", middlewares.SetMiddlewareJSON(server.GetLoanDetailByGeneralID)).Methods(constant.HTTPMethodGet)
 	server.Router.HandleFunc("/loan-detail/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(server.UpdateLoanDetail))).Methods(constant.HTTPMethodPut)
 	server.Router.HandleFunc("/loan-detail/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(server.DeleteLoanDetail))).Methods(constant.HTTPMethodDelete)
 
 	server.Router.HandleFunc("/loan-detail", middlewares.SetMiddlewareJSON(server.GetUsers)).Methods(constant.HTTPMethodOptions)
-	server.Router.HandleFunc("/loan-detail/general/{id}", middlewares.SetMiddlewareJSON(server.GetLoanDetail)).Methods(constant.HTTPMethodOptions)
+	server.Router.HandleFunc("/loan-detail/general/{id}", middlewares.SetMiddlewareJSON(server.GetLoanDetailByGeneralID)).Methods(constant.HTTPMethodOptions)
 	server.Router.HandleFunc("/loan-detail/{id}", middlewares.SetMiddlewareJSON(server.GetUser)).Methods(constant.HTTPMethodOptions)
 
 	// Loan action

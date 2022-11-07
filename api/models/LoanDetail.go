@@ -63,19 +63,14 @@ func (ld *LoanDetail) FindLoanDetailByID(db *gorm.DB, lid uint32) (*LoanDetail, 
 	return ld, nil
 }
 
-func (ld *LoanDetail) FindLoanDetailByLoanGeneralID(db *gorm.DB, lid uint32) (*LoanDetail, error) {
+func (ld *LoanDetail) FindLoanDetailByLoanGeneralID(db *gorm.DB, lid uint32) (*[]LoanDetail, error) {
 	var err error
-	err = db.Debug().Model(&LoanDetail{}).Where("loan_general_id = ?", lid).Take(&ld).Error
+	loanDetails := make([]LoanDetail, 0)
+	err = db.Debug().Model(&LoanDetail{}).Where("loan_general_id = ?", lid).Find(&loanDetails).Error
 	if err != nil {
-		return &LoanDetail{}, err
+		return &[]LoanDetail{}, err
 	}
-	if ld.ID != 0 {
-		err = db.Debug().Model(&LoanGeneral{}).Where("id = ?", ld.LoanGeneralID).Take(&ld.General).Error
-		if err != nil {
-			return &LoanDetail{}, err
-		}
-	}
-	return ld, nil
+	return &loanDetails, err
 }
 
 func (ld *LoanDetail) UpdateALoanDetail(db *gorm.DB, uid uint32) (*LoanDetail, error) {

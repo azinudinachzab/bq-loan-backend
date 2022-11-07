@@ -338,7 +338,21 @@ func (server *Server) GetLoanDetailByGeneralID(w http.ResponseWriter, r *http.Re
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
 	}
-	responses.JSON(w, http.StatusOK, loanDetailData)
+
+	loanGeneral := models.LoanGeneral{}
+	loanGeneralData, err := loanGeneral.FindLoanGeneralByID(server.DB, uint32(pid))
+	if err != nil {
+		responses.ERROR(w, http.StatusNotFound, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, struct {
+		General models.LoanGeneral
+		Details []models.LoanDetail
+	}{
+		General: *loanGeneralData,
+		Details: *loanDetailData,
+	})
 }
 
 func (server *Server) UpdateLoanDetail(w http.ResponseWriter, r *http.Request) {
