@@ -169,14 +169,17 @@ func (server *Server) GetLoanGenerals(w http.ResponseWriter, r *http.Request) {
 	loan := "%" + r.URL.Query().Get("loan") + "%"
 	lastTime := r.URL.Query().Get("timestamp")
 
-	tParse, err := time.Parse(time.RFC3339, lastTime)
-	if err != nil {
-		responses.ERROR(w, http.StatusInternalServerError, err)
-		return
+	if lastTime != "" {
+		tParse, err := time.Parse(time.RFC3339, lastTime)
+		if err != nil {
+			responses.ERROR(w, http.StatusInternalServerError, err)
+			return
+		}
+		lastTime = tParse.Format(time.RFC3339)
 	}
 
 	loanGeneral := models.LoanGeneral{}
-	loanGenerals, err := loanGeneral.FindAllLoanGeneralsPaginatedSearch(creditor, loan, tParse.Format(time.RFC3339))
+	loanGenerals, err := loanGeneral.FindAllLoanGeneralsPaginatedSearch(creditor, loan, lastTime)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
