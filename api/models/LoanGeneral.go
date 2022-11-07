@@ -212,11 +212,21 @@ func (lg *LoanGeneral) FindAllLoanGeneralsPaginatedSearch(creditor, loan, lastTi
 		return nil, err
 	}
 
-	rows, err := rdb.Query(`SELECT lt.name, u.name, lg.id, lg.user_id, lg.title, lg.amount, lg.datetime, lg.tenor, lg.status, 
+	q := `SELECT lt.name, u.name, lg.id, lg.user_id, lg.title, lg.amount, lg.datetime, lg.tenor, lg.status, 
 	lg.loan_type_id, lg.created_at FROM loan_generals lg 
 	LEFT JOIN loan_types lt ON lt.id = lg.loan_type_id LEFT JOIN users u ON u.id = lg.user_id 
-	WHERE lg.title LIKE ? AND u.name LIKE ? AND lg.datetime < ?
-	ORDER BY lg.datetime DESC LIMIT 25;`, loan, creditor, lastTime)
+	WHERE lg.title LIKE ? AND u.name LIKE ? %v
+	ORDER BY lg.datetime DESC LIMIT 25;`
+	args := make([]interface{}, 0)
+	args = append(args, loan)
+	args = append(args, creditor)
+	var w string
+	if lastTime != "" {
+		w = `AND lg.datetime < ? `
+		args = append(args, lastTime)
+	}
+	q = fmt.Sprintf(q, w)
+	rows, err := rdb.Query(q, args...)
 	if err != nil {
 		return nil, err
 	}
