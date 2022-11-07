@@ -170,7 +170,7 @@ func (server *Server) GetLoanGenerals(w http.ResponseWriter, r *http.Request) {
 	lastTime := r.URL.Query().Get("timestamp")
 
 	if lastTime != "" {
-		tParse, err := time.Parse(time.RFC3339, lastTime)
+		tParse, err := time.Parse(time.RFC3339Nano, lastTime)
 		if err != nil {
 			responses.ERROR(w, http.StatusInternalServerError, err)
 			return
