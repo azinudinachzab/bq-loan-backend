@@ -215,7 +215,7 @@ func (lg *LoanGeneral) FindAllLoanGeneralsPaginatedSearch(creditor, loan, lastTi
 	rows, err := rdb.Query(`SELECT lt.name, u.name, lg.id, lg.user_id, lg.title, lg.amount, lg.datetime, lg.tenor, lg.status, 
 	lg.loan_type_id, lg.created_at FROM loan_generals lg 
 	LEFT JOIN loan_types lt ON lt.id = lg.loan_type_id LEFT JOIN users u ON u.id = lg.user_id 
-	WHERE lg.title LIKE ? AND u.name LIKE ? AND lg.datetime > ?
+	WHERE lg.title LIKE ? AND u.name LIKE ? AND lg.datetime < ?
 	ORDER BY lg.datetime DESC LIMIT 25;`, loan, creditor, lastTime)
 	if err != nil {
 		return nil, err
