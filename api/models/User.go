@@ -19,6 +19,8 @@ type User struct {
 	Password  string    `gorm:"size:255;not null;" json:"password"`
 	Role      int `gorm:"type:int;not null;default:1" json:"role"`
 	IsActive  int `gorm:"type:int;not null;" json:"is_active"`
+	IsLeader  int `gorm:"type:int;not null;default:0" json:"is_leader"`
+	Balance    float64    `gorm:"type:decimal;not null" json:"balance"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -50,6 +52,7 @@ func (u *User) Prepare() {
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
+	u.Balance = 0
 }
 
 func (u *User) Validate(action string) error {
@@ -111,7 +114,7 @@ func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
 	var err error
 	users := []User{}
-	err = db.Debug().Model(&User{}).Limit(paginationLimit).Find(&users).Error
+	err = db.Debug().Model(&User{}).Find(&users).Error
 	if err != nil {
 		return &[]User{}, err
 	}

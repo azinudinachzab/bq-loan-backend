@@ -149,6 +149,18 @@ func (server *Server) CreateLoanGeneral(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	loanGeneral.Prepare()
+
+	loanType := models.LoanType{}
+	loanTypeData, err := loanType.FindLoanTypeByID(server.DB, loanGeneral.LoanTypeID)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if loanTypeData.Margin > 0 {
+		loanGeneral.Amount = loanGeneral.Amount * loanTypeData.Margin
+	}
+
 	//err = post.Validate()
 	//if err != nil {
 	//	responses.ERROR(w, http.StatusUnprocessableEntity, err)

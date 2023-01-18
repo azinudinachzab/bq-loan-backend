@@ -9,8 +9,9 @@ import (
 )
 
 type LoanType struct {
-	ID    uint32 `gorm:"primary_key;auto_increment" json:"id"`
-	Name  string `gorm:"size:255;not null;unique" json:"name"`
+	ID     uint32  `gorm:"primary_key;auto_increment" json:"id"`
+	Name   string  `gorm:"size:255;not null;unique" json:"name"`
+	Margin float64 `gorm:"type:decimal;not null" json:"margin"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -57,6 +58,7 @@ func (lt *LoanType) UpdateALoanType(db *gorm.DB, uid uint32) (*LoanType, error) 
 	db = db.Debug().Model(&LoanType{}).Where("id = ?", uid).Take(&LoanType{}).UpdateColumns(
 		map[string]interface{}{
 			"name":      lt.Name,
+			"margin":    lt.Margin,
 			"updated_at": time.Now(),
 		},
 	)
