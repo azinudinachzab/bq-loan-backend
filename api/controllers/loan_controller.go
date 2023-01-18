@@ -158,7 +158,7 @@ func (server *Server) CreateLoanGeneral(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if loanTypeData.Margin > 0 {
-		loanGeneral.Amount = loanGeneral.Amount * loanTypeData.Margin
+		loanGeneral.Amount = loanGeneral.Amount + ((loanGeneral.Amount * loanTypeData.Margin)/ 100)
 	}
 
 	//err = post.Validate()
