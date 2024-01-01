@@ -1,15 +1,18 @@
 package main
 
 import (
-	"os"
+	"github.com/azinudinachzab/bq-loan-be-v2/app"
 
-	"github.com/azinudinachzab/bq-loan-backend/api"
+	"log"
+	"os"
 )
 
 func init() {
-	os.Setenv("TZ", "Asia/Jakarta")
+	if err := os.Setenv("TZ", "Asia/Jakarta"); err != nil {
+		log.Fatalf("cant load timezone %v\n", err)
+	}
 }
 
 func main() {
-	api.Run()
+	app.New().Run()
 }

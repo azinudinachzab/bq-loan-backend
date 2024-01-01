@@ -1,1 +1,0 @@
-web: bq-loan-backend
