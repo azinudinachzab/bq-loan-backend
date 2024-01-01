@@ -60,9 +60,9 @@ type Repository interface {
 }
 
 func (p *PgRepository) GetDashboardData(ctx context.Context) (model.Dashboard, error) {
-	q := `SELECT (SELECT amount FROM loan_generals WHERE status=1 AND loan_type_id=1 ORDER BY datetime DESC LIMIT 1) AS latest_loan,
-       (SELECT amount FROM loan_generals WHERE status=1 AND loan_type_id=1 ORDER BY amount DESC LIMIT 1) AS biggest_loan,
-       (SELECT count(id) FROM loan_generals WHERE status=1 AND loan_type_id=1) AS accepted_loan`
+	q := `SELECT (SELECT amount FROM loan_generals WHERE status=1 AND (loan_type_id=3 OR loan_type_id=4) ORDER BY datetime DESC LIMIT 1) AS latest_loan,
+       (SELECT amount FROM loan_generals WHERE status=1 AND (loan_type_id=3 OR loan_type_id=4) ORDER BY amount DESC LIMIT 1) AS biggest_loan,
+       (SELECT count(id) FROM loan_generals WHERE status=1 AND (loan_type_id=3 OR loan_type_id=4)) AS accepted_loan`
 	var (
 		ll, bl sql.NullFloat64
 		al     sql.NullInt32
