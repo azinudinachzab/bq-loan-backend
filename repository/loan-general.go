@@ -52,7 +52,7 @@ func (p *PgRepository) GetLoanGenerals(ctx context.Context, lastID, uID uint32, 
 
 	q := fmt.Sprintf(`SELECT lg.id,lg.title,lg.amount,lg.datetime,lg.tenor,lg.status,lg.user_id,lg.loan_type_id,
        	lg.created_at,lg.updated_at,lt.name as ltname,u.name as uname FROM %s lg
-		INNER JOIN loan.loan_types lt on lg.loan_type_id = lt.id INNER JOIN loan.users u on lg.user_id = u.id
+		INNER JOIN loan_types lt on lg.loan_type_id = lt.id INNER JOIN users u on lg.user_id = u.id
 		WHERE lg.id > ?%s ORDER BY lg.id LIMIT 25`, loanGeneralTab, qWhere)
 	rows, err := p.dbCore.QueryContext(ctx, q, args...)
 	if err != nil {
