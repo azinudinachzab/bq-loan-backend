@@ -59,7 +59,7 @@ func (c *Cron) MonthlyMandatory() {
 			Datetime:   execTime,
 			Tenor:      1,
 			Status:     0,
-			LoanTypeID: 2,
+			LoanTypeID: 1,
 		}); err != nil {
 			log.Printf("error when store loan %v\n to user %v", err, val.ID)
 			return
