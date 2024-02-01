@@ -12,10 +12,10 @@ const (
 )
 
 func (p *PgRepository) CreateSocialFundRequest(ctx context.Context, sf model.SocialFund) error {
-	q := fmt.Sprintf(`INSERT INTO %s (user_id,fund_type,amount,status,created_at,updated_at) VALUES (?,?,?,?,?,?);`, socialFundsTab)
+	q := fmt.Sprintf(`INSERT INTO %s (user_id,title,fund_type,amount,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?);`, socialFundsTab)
 	now := time.Now().Format(time.RFC3339)
 
-	if _, err := p.dbCore.ExecContext(ctx, q, sf.UserID, 1, sf.Amount, 0, now, now); err != nil {
+	if _, err := p.dbCore.ExecContext(ctx, q, sf.UserID, sf.Title, 1, sf.Amount, 0, now, now); err != nil {
 		return err
 	}
 

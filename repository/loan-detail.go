@@ -230,9 +230,9 @@ func (p *PgRepository) AddBalance(ctx context.Context, id, uid uint32, balance s
 		c + amount, uid,
 	}
 	if balance == "social" {
-		q = `INSERT INTO social_funds (user_id, fund_type, amount) VALUES (?,?,?)`
+		q = `INSERT INTO social_funds (user_id, title, fund_type, amount) VALUES (?,?,?,?)`
 		args = []interface{}{
-			uid, 0, amount,
+			uid, "iuran sosial bulanan", 0, amount,
 		}
 	}
 	if _, err := tx.ExecContext(ctx, q, args...); err != nil {
