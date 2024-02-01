@@ -25,9 +25,13 @@ func NewCron(svc service.Service, loc *time.Location) *gocron.Scheduler {
 	if _, err := s.Every(1).Hour().Do(c.CronHealthCheck); err != nil {
 		log.Printf("error when running cron %v\n job name: %v\n", err, "healthcheck")
 	}
-	now := time.Now()
-	specificTime := time.Date(now.Year(), now.Month(), 25, 0, 0, 0, 0, now.Location())
-	if _, err := s.Every(1).Month(25).StartAt(specificTime).Do(c.MonthlyMandatory); err != nil {
+	if _, err := s.Every(1).Month(20).Do(c.MonthlyMandatory); err != nil {
+		log.Printf("error when running cron %v\n job name: %v\n", err, "iuranwajib")
+	}
+	if _, err := s.Every(1).Month(20).Do(c.MonthlyMandatory); err != nil {
+		log.Printf("error when running cron %v\n job name: %v\n", err, "iuranwajib")
+	}
+	if _, err := s.Every(1).Month(20).Do(c.MonthlyMandatory); err != nil {
 		log.Printf("error when running cron %v\n job name: %v\n", err, "iuranwajib")
 	}
 
@@ -55,11 +59,74 @@ func (c *Cron) MonthlyMandatory() {
 		if err := c.service.CreateLoanGeneral(ctx, model.LoanGeneral{
 			UserID:     val.ID,
 			Title:      fmt.Sprintf("iuran wajib %s", now.Month().String()),
-			Amount:     25000,
+			Amount:     200000,
 			Datetime:   execTime,
 			Tenor:      1,
 			Status:     0,
 			LoanTypeID: 1,
+		}); err != nil {
+			log.Printf("error when store loan %v\n to user %v", err, val.ID)
+			return
+		}
+	}
+	log.Println("Job done for date: ", execTime)
+}
+
+func (c *Cron) MonthlySocialFund() {
+	ctx := context.Background()
+	now := time.Now()
+	execTime := now.Format(time.DateTime)
+	log.Printf("Executing job for date: %s\n", execTime)
+
+	flt := make(map[string]string)
+	usrs, err := c.service.GetUsers(ctx, flt)
+	if err != nil {
+		log.Printf("error when get users %v\n", err)
+		return
+	}
+
+	for _, val := range usrs {
+		if val.IsLeader != 1 {
+			continue
+		}
+		if err := c.service.CreateLoanGeneral(ctx, model.LoanGeneral{
+			UserID:     val.ID,
+			Title:      fmt.Sprintf("dana sosial %s", now.Month().String()),
+			Amount:     25000,
+			Datetime:   execTime,
+			Tenor:      1,
+			Status:     0,
+			LoanTypeID: 5,
+		}); err != nil {
+			log.Printf("error when store loan %v\n to user %v", err, val.ID)
+			return
+		}
+	}
+	log.Println("Job done for date: ", execTime)
+}
+
+func (c *Cron) MonthlyBQMart() {
+	ctx := context.Background()
+	now := time.Now()
+	execTime := now.Format(time.DateTime)
+	log.Printf("Executing job for date: %s\n", execTime)
+
+	flt := make(map[string]string)
+	usrs, err := c.service.GetUsers(ctx, flt)
+	if err != nil {
+		log.Printf("error when get users %v\n", err)
+		return
+	}
+
+	for _, val := range usrs {
+		if err := c.service.CreateLoanGeneral(ctx, model.LoanGeneral{
+			UserID:     val.ID,
+			Title:      fmt.Sprintf("iuran wajib %s", now.Month().String()),
+			Amount:     25000,
+			Datetime:   execTime,
+			Tenor:      1,
+			Status:     0,
+			LoanTypeID: 7,
 		}); err != nil {
 			log.Printf("error when store loan %v\n to user %v", err, val.ID)
 			return

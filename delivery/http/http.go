@@ -87,6 +87,10 @@ func NewHttpServer(svc service.Service) http.Handler {
 	r.Get("/loan-type", d.GetLoanTypes)
 	r.Get("/loan-type/{id}", d.GetLoanType)
 
+	// social fund
+	r.Post("/social", d.CreateSocialFund)
+	r.Get("/social/accept/{id}", d.AcceptSocialFundRequest)
+
 	return r
 }
 

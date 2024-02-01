@@ -60,4 +60,7 @@ type Service interface {
 	DeleteLoanDetail(ctx context.Context, id, lgid uint32) error
 	GetLoanDetail(ctx context.Context, id uint32) (model.LoanDetail, error)
 	GetLoanDetails(ctx context.Context, generalID uint32) ([]model.LoanDetail, error)
+
+	SocialFundRequest(ctx context.Context, req model.SocialFund) error
+	AcceptSocialFundRequest(ctx context.Context, id uint32) error
 }

@@ -226,7 +226,16 @@ func (p *PgRepository) AddBalance(ctx context.Context, id, uid uint32, balance s
 	defer tx.Rollback()
 
 	q := fmt.Sprintf(`UPDATE users SET %s=? WHERE id=?`, balance)
-	if _, err := tx.ExecContext(ctx, q, c+amount, uid); err != nil {
+	args := []interface{}{
+		c + amount, uid,
+	}
+	if balance == "social" {
+		q = `INSERT INTO social_funds (user_id, fund_type, amount) VALUES (?,?,?)`
+		args = []interface{}{
+			uid, 0, amount,
+		}
+	}
+	if _, err := tx.ExecContext(ctx, q, args...); err != nil {
 		return err
 	}
 

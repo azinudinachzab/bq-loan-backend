@@ -43,6 +43,11 @@ func (s *AppService) AcceptLoanRequest(ctx context.Context, id uint32) error {
 				return err
 			}
 			return nil
+		case 4:
+			if err := s.repo.AddBalance(ctx, lg.ID, lg.UserID, "social", 0, lg.Amount); err != nil {
+				return err
+			}
+			return nil
 		}
 	}
 
@@ -93,4 +98,30 @@ func (s *AppService) Dashboard(ctx context.Context) (model.Dashboard, error) {
 
 func (s *AppService) DashboardAdmin(ctx context.Context) (model.DashboardAdmin, error) {
 	return s.repo.GetDashboardAdminData(ctx)
+}
+
+func (s *AppService) SocialFundRequest(ctx context.Context, req model.SocialFund) error {
+	if err := s.validator.Struct(req); err != nil {
+		log.Printf("error when validate request %v\n", err)
+		return err
+	}
+
+	usr, err := s.repo.GetUser(ctx, req.UserID)
+	if err != nil {
+		log.Printf("error when get user %v\n", err)
+		return err
+	}
+	if usr.ID == 0 {
+		return errors.New("user not registered")
+	}
+
+	if err := s.repo.CreateSocialFundRequest(ctx, req); err != nil {
+		log.Printf("error when store social fund %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func (s *AppService) AcceptSocialFundRequest(ctx context.Context, id uint32) error {
+	return s.repo.UpdateSocialFundStatus(ctx, id)
 }
