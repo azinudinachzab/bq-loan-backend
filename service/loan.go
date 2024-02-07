@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/azinudinachzab/bq-loan-be-v2/model"
 	"log"
+	"math"
 	"time"
 )
 
@@ -89,7 +90,26 @@ func (s *AppService) AcceptPaymentRequest(ctx context.Context, id uint32) error 
 		return errors.New("already paid")
 	}
 
-	return s.repo.UpdateLoanDetailStatus(ctx, ld.ID, ld.LoanGeneralID, ld.Amount)
+	lg, err := s.repo.GetLoanGeneral(ctx, ld.LoanGeneralID)
+	if err != nil {
+		log.Printf("error when get loan general %v\n", err)
+		return err
+	}
+
+	lt, err := s.repo.GetLoanType(ctx, lg.LoanTypeID)
+	if err != nil {
+		log.Printf("error when get loan type %v\n", err)
+		return err
+	}
+
+	incomeAmount := 0.00
+	if lt.Margin != 0 {
+		percentage := 100.00 + lt.Margin
+		originalAmount := (lg.Amount / percentage) * 100.00
+		incomeAmount = math.Round(originalAmount / lt.Margin / float64(lg.Tenor))
+	}
+
+	return s.repo.UpdateLoanDetailStatus(ctx, ld.ID, ld.LoanGeneralID, incomeAmount)
 }
 
 func (s *AppService) Dashboard(ctx context.Context) (model.Dashboard, error) {

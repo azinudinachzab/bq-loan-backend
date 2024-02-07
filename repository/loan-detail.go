@@ -172,9 +172,11 @@ func (p *PgRepository) UpdateLoanDetailStatus(ctx context.Context, id, lgid uint
 		return err
 	}
 
-	q = `INSERT INTO income (loan_general_id,amount,datetime) VALUES (?,?,?)`
-	if _, err := tx.ExecContext(ctx, q, lgid, amount, time.Now().Format(time.DateTime)); err != nil {
-		return err
+	if amount != 0 {
+		q = `INSERT INTO income (loan_general_id,amount,datetime) VALUES (?,?,?)`
+		if _, err := tx.ExecContext(ctx, q, lgid, amount, time.Now().Format(time.DateTime)); err != nil {
+			return err
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
