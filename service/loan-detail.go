@@ -90,3 +90,13 @@ func (s *AppService) GetLoanDetails(ctx context.Context, generalID uint32) ([]mo
 
 	return lds, nil
 }
+
+func (s *AppService) GetMonthlyLoanDetails(ctx context.Context, month int) ([]model.LoanDetail, error) {
+	lds, err := s.repo.GetMonthlyLoanDetail(ctx, month)
+	if err != nil {
+		log.Printf("error when get data from database %v\n", err)
+		return nil, err
+	}
+
+	return lds, nil
+}

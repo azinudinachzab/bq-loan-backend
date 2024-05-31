@@ -57,6 +57,7 @@ type Repository interface {
 	UpdateLoanDetailStatus(ctx context.Context, id, lgid uint32, amount float64) error
 	BulkSaveLoanDetail(ctx context.Context, dt []model.LoanDetail) error
 	AddBalance(ctx context.Context, id, uid uint32, balance string, c, amount float64) error
+	GetMonthlyLoanDetail(ctx context.Context, month int) ([]model.LoanDetail, error)
 
 	CreateSocialFundRequest(ctx context.Context, sf model.SocialFund) error
 	UpdateSocialFundStatus(ctx context.Context, id uint32) error

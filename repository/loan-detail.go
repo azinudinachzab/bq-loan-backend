@@ -258,3 +258,47 @@ func (p *PgRepository) AddBalance(ctx context.Context, id, uid uint32, balance s
 	}
 	return nil
 }
+
+func (p *PgRepository) GetMonthlyLoanDetail(ctx context.Context, month int) ([]model.LoanDetail, error) {
+	now := time.Now()
+	tStart := time.Date(now.Year(), time.Month(month), 1, 0, 0, 0, 0, now.Location())
+	tEnd := tStart.AddDate(0, 1, 0).Add(-1 * time.Second)
+	q := fmt.Sprintf(`SELECT id, loan_general_id, amount, datetime, status,
+       created_at, updated_at FROM %s WHERE datetime > ? AND datetime < ?`, loanDetailTab)
+	executor := p.dbCore.QueryContext
+
+	rows, err := executor(ctx, q, tStart, tEnd)
+	if err != nil {
+		return nil, err
+	}
+	defer rowClose(rows)
+
+	loanDetails := make([]model.LoanDetail, 0)
+	for rows.Next() {
+		var (
+			id, lgid     uint32
+			amount       sql.NullFloat64
+			status       sql.NullInt32
+			dt, cat, uat sql.NullTime
+		)
+
+		if err := rows.Scan(&id, &lgid, &amount, &dt, &status, &cat, &uat); err != nil {
+			return nil, err
+		}
+
+		loanDetails = append(loanDetails, model.LoanDetail{
+			ID:            id,
+			LoanGeneralID: lgid,
+			Amount:        amount.Float64,
+			Datetime:      dt.Time.Format(time.DateTime),
+			Status:        int(status.Int32),
+			CreatedAt:     cat.Time.Format(time.RFC3339),
+			UpdatedAt:     uat.Time.Format(time.RFC3339),
+		})
+		if rows.Err() != nil {
+			return nil, err
+		}
+	}
+
+	return loanDetails, nil
+}
