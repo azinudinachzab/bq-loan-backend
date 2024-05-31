@@ -49,11 +49,11 @@ func (c *Cron) MonthlyMandatory() {
 	ctx := context.Background()
 	now := time.Now()
 
-	if now.Day() != 31 {
+	if now.Day() != 20 {
 		return
 	}
 
-	execTime := now.Format(time.DateTime)
+	execTime := now.Format(time.RFC3339)
 	log.Printf("Executing job for date: %s\n", execTime)
 
 	flt := make(map[string]string)
@@ -85,11 +85,11 @@ func (c *Cron) MonthlySocialFund() {
 	ctx := context.Background()
 	now := time.Now()
 
-	if now.Day() != 31 {
+	if now.Day() != 20 {
 		return
 	}
 
-	execTime := now.Format(time.DateTime)
+	execTime := now.Format(time.RFC3339)
 	log.Printf("Executing job for date: %s\n", execTime)
 
 	flt := make(map[string]string)
@@ -124,11 +124,11 @@ func (c *Cron) MonthlyBQMart() {
 	ctx := context.Background()
 	now := time.Now()
 
-	if now.Day() != 31 {
+	if now.Day() != 20 {
 		return
 	}
 
-	execTime := now.Format(time.DateTime)
+	execTime := now.Format(time.RFC3339)
 	log.Printf("Executing job for date: %s\n", execTime)
 
 	flt := make(map[string]string)
@@ -160,11 +160,11 @@ func (c *Cron) DetailPaid() {
 	ctx := context.Background()
 	now := time.Now()
 
-	if now.Day() != 31 {
+	if now.Day() != 20 {
 		return
 	}
 
-	execTime := now.Format(time.DateTime)
+	execTime := now.Format(time.RFC3339)
 	log.Printf("Executing job for date: %s\n", execTime)
 
 	details, err := c.service.GetMonthlyLoanDetails(ctx, int(now.Month()))
